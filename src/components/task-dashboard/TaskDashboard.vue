@@ -5,21 +5,143 @@
         <div>
             <v-btn outlined 
             small color="primary" 
-            style="margin: 15px; border-color: rgb(223, 9, 226);"
+            style="margin: 15px; border-color: rgba(223, 9, 226, 0.17); color: #974aa5; font-size: 0.7em"
             v-on:click="showCreationInfo()">
-                Steps to start tasking <v-icon>mdi-reminder</v-icon>
+                Steps to start tasking <v-icon>mdi-star-three-points-outline</v-icon>
             </v-btn>
         </div>
 
         <transition name="alert-in" enter-active-class="animated bounceInDown" leave-active-class="animated bounceOutUp">
             <p v-if="showCreationInf">
-                <b>Process: </b> To be, or not to be: that is the question: whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them? To die: to sleep; no more; and, by a sleep to say we end the heart-ache and the thousand natural shocks that flesh is heir to, 'tis a consummation devoutly to be wish'd. To die, to sleep; to sleep: perchance to dream: ay, there's the rub; for in that sleep of death what dreams may come when we have shuffled off this mortal coil, must give us pause. There's the respect that makes calamity of so long a life; for who would bear the whips and scorns of time, the oppressor's wrong, the proud man's contumely, the pangs of dispriz'd love, the law's delay, the insolence of office, and the spurns that patient merit of the unworthy takes, when he himself might his quietus make with a bare bodkin? Who would fardels bear, to grunt and sweat under a weary life, but that the dread of something after death, the undiscover'd country from whose bourn no traveller returns, puzzles the will, and makes us rather bear those ills we have, than fly to others that we know not of? Thus consience doth make cowards of us all; and thus the native hue of resolution is sicklied o'er with the pale cast of thought, and enterprises of great pith and moment with this regard their currents turn awry, and lose the name of action.
+                <b>Process: </b> Its very simple. You start from Creating task in the box below by hitting enter. You can even enter the subtasks for each task you created. Note: Each task can only contain 7 subtasks.
             </p>
         </transition>
 
         <div class="flexSpaceBetween">
-            <div class="taskBox" style="margin-right: 10px;"></div>
-            <div class="taskBox" style="margin-left: 10px;"></div>
+            <div class="taskBox" style="margin-right: 10px;">
+
+                <template>
+                    <div>
+                        <div style="margin-bottom: 20px">
+                            <small><b style="color: purple;">Task can be same! Maintaining it is your task :)</b></small>
+                        </div>
+
+                        <form @submit.prevent="addNewTaskInRow()">
+                            <v-text-field 
+                                v-model="taskname"
+                                label="Task"
+                                >
+                            </v-text-field>
+                        </form>
+
+                        <div class="pendingTaskContainer" >
+
+                            <div v-if="pendingTaskList.length !== 0">
+                                <transition-group enter-active-class="animated fadeInDownBig" leave-active-class="animated bounceOutRight" >
+                                    <TaskPending v-for="(task, index) in pendingTaskList" 
+                                        v-bind:key="task.taskid"
+                                        v-bind:index="index"
+                                        :taskdetail="task" 
+                                        v-on:remove="deleteTheTaskMessageFromTaskrow(index)" 
+                                        v-on:doneTask="taskMarkAsDone(index)"
+                                        v-on:expandtask="exapandThisTask(index)"/>
+                                </transition-group>
+                            </div>
+
+
+                            <div v-if="pendingTaskList.length === 0" class="noDataPresent noPendingTask">
+                                Oops! No data present!! 
+                            </div>
+
+                        </div>
+
+                      
+
+                    </div>
+                </template>
+            </div>
+            <div class="taskBox" style="margin-left: 10px;">
+
+
+                    <template>
+
+                        <div>
+                            <v-sheet elevation="6" style="border-radius: 20px;margin-bottom: 30px">
+                                <v-tabs  style="display: flex;justify-content: center;"
+                                v-model="model"
+                                >
+                                <v-tabs-slider></v-tabs-slider>
+                            
+                                    <v-tab :href="`#completedTab`">
+                                        Completed Task
+                                    </v-tab>
+                                    <v-tab :href="`#deletedTab`">
+                                        Deleted Task
+                                    </v-tab>
+                                </v-tabs>
+                            </v-sheet>
+
+                            <v-tabs-items v-model="model">
+
+                                <v-tab-item :value="`completedTab`"> 
+
+                                        <div class="pendingTaskContainer">
+
+                                            <div v-if="(completedTaskList.length !== 0)">
+                                                <small class="subtitle">
+                                                    <b>Delete Permanently or Reinstate any Task</b>
+                                                </small>
+
+                                                <transition-group enter-active-class="animated bounceInLeft" 
+                                                    leave-active-class="animated fadeOut" >
+                                                    <TaskCompleted v-for="(task, index) in completedTaskList" 
+                                                        v-bind:key="task.taskid"
+                                                        v-bind:index="index"
+                                                        :taskdetail="task"
+                                                        v-on:remove= "removeTaskPermanentlyFromCompleted(index)"
+                                                        v-on:reinstate="reinstateFromCompleted(index)" />
+                                                </transition-group>
+                                            </div>
+
+                                            <div v-if="completedTaskList.length === 0" class="noDataPresent">
+                                                Oops! No data present!! 
+                                            </div>
+
+                                        </div>
+
+                                </v-tab-item>
+
+                                <v-tab-item :value="`deletedTab`">
+
+                                    <div class="pendingTaskContainer">
+
+                                        <div v-if="(deletedTaskList.length !== 0)">
+                                            <small class="subtitle">
+                                                <b>Delete Permanently or Reinstate any Task</b>
+                                            </small>
+
+                                            <transition-group enter-active-class="animated bounceInLeft" leave-active-class="animated fadeOut" >
+                                                <TaskDeleted v-for="(task, index) in deletedTaskList" 
+                                                    v-bind:key="task.taskid"
+                                                    v-bind:index="index"
+                                                    :taskdetail="task" 
+                                                    v-on:remove= "removeTaskPermanentlyFromDeleted(index)"
+                                                    v-on:reinstate="reinstateFromDeleted(index)"/>
+                                            </transition-group>
+                                        </div>
+
+                                        <div v-if="deletedTaskList.length === 0" class="noDataPresent">
+                                            Oops! No data present!! 
+                                        </div>
+                                    </div>
+
+                                </v-tab-item>
+                            </v-tabs-items>
+
+                        </div>
+                    </template>
+
+            </div>
         </div>
 
     </div>
@@ -27,20 +149,93 @@
 
 <script>
 import MainHeader from './../main-header/MainHeader';
+import TaskPending from './../task-rows/TaskPending'
+import TaskCompleted from './../task-rows/TaskCompleted'
+import TaskDeleted from './../task-rows/TaskDeleted'
+
 export default {
     components: {
-        MainHeader
+        MainHeader,
+        TaskPending,
+        TaskCompleted,
+        TaskDeleted
     },
     data() {
         return{
-            showCreationInf: false
+            showCreationInf: false,
+            taskname: '',
+            picker: new Date().toISOString().substr(0, 10),
+            tasklist: [],
+            pendingTaskList:[],
+            completedTaskList:[],
+            deletedTaskList:[],
+            model:'completedTab'
         }
     },
     methods: {
         showCreationInfo: function(){
             console.log('here ', this.showCreationInf);
             this.showCreationInf = !this.showCreationInf;
+        },
+        addNewTaskInRow: function(){
+            const date = new Date();
+            this.pendingTaskList.unshift({name: this.taskname, 
+                    status: 'pending', 
+                    reminder:null, 
+                    taskid: date.getTime(),
+                    taskCreatedOn: date.toLocaleString(),
+                    subtaskList: []
+                    });
+
+                    this.taskname = '';
+                }, 
+
+        deleteTheTaskMessageFromTaskrow: function(index){
+             this.pendingTaskList.forEach((item, i) => {
+                if(i===index){
+                    item.status='deleted'
+                }
+            });
+            this.deletedTaskList.push(this.pendingTaskList[index]);
+             this.pendingTaskList.splice(index, 1);
+        },
+        
+        taskMarkAsDone: function(index){
+            this.pendingTaskList.forEach((item, i) => {
+                if(i===index){
+                    item.status='completed'
+                }
+            });
+            this.completedTaskList.push(this.pendingTaskList[index]);
+            this.pendingTaskList.splice(index, 1);
+        },
+
+        removeTaskPermanentlyFromCompleted: function(index){
+            this.completedTaskList.splice(index,1);
+        },
+
+        removeTaskPermanentlyFromDeleted: function(index){
+            this.deletedTaskList.splice(index, 1);
+        },
+
+        reinstateFromCompleted: function(index){
+            this.pendingTaskList.push(this.completedTaskList[index]);
+            this.completedTaskList.splice(index, 1);
+            this.model = 'completedTab';
+        },
+
+        reinstateFromDeleted: function(index){
+            this.pendingTaskList.push(this.deletedTaskList[index]);
+            this.deletedTaskList.splice(index, 1);
+            this.model = 'deletedTab';
+        },
+
+        exapandThisTask: function(index){
+            let task_ = this.pendingTaskList[index];
+            this.$router.push({name: 'task', params: {taskid: task_.taskid, completeTaskInfo: task_}})
         }
+
+
     },
     created: function(){
         console.log('here in task dashboard');

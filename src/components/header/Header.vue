@@ -8,10 +8,10 @@
                 </div>
             </div>
             <div>
-                <v-btn class="signbtn" v-on:click="toggleSignupToLoginBtn()" v-if="!showLoginBtn">
+                <v-btn class="signbtn" v-on:click="toggleSignupToLoginBtn('signup')" v-if="showLoginBtn === 'login'">
                     Signup
                 </v-btn>
-                <v-btn class="signbtn" v-on:click="toggleSignupToLoginBtn()" v-if="showLoginBtn">
+                <v-btn class="signbtn" v-on:click="toggleSignupToLoginBtn('login')" v-if="showLoginBtn === 'signup'">
                     Login
                 </v-btn>
             </div>
@@ -27,25 +27,25 @@
 export default {
     data(){
         return{
-            showLoginBtn:false
+            showLoginBtn:'signup'
         }
     },
     methods: {
-        toggleSignupToLoginBtn: function(){
-            if(this.showLoginBtn){
-                this.showLoginBtn = false;
-            this.$router.push('/signup').catch((err)=>{
-                console.log('err going to signup ', err);
-            })
-            }else{
-                this.showLoginBtn = true;
-                this.$router.push('/login').catch((err)=>{
-                console.log('err going to login ', err);})
-            }
+        toggleSignupToLoginBtn: function(route){
+            this.showLoginBtn = route;
+            this.$router.push({name: route, show: route});
+            // if(this.showLoginBtn){
+            // this.$router.push({name: 'signup'});
+            // this.showLoginBtn = false;
+            // }else{
+            //     this.$router.push({name: 'login'});
+            //      this.showLoginBtn = true;
+            // }
         }
     },
     created: function() {
-        window.console.log('here', this.showLoginBtn);
+        
+        
     }
 }
 </script>

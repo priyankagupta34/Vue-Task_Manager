@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Login from './components/login/Login'
 import Signup from './components/signup/Signup'
 import TaskDashboard from './components/task-dashboard/TaskDashboard'
+import IndividualTask from './components/individual-task/IndividualTask'
 
 const originalPush = Router.prototype.push;
 Router.prototype.push = function push(location) {
@@ -36,6 +37,13 @@ export default new Router({
             path: '/taskdashboard',
             name: 'taskdashboard',
             component: TaskDashboard
-        }
+        },        
+        {
+            path: '/task/:taskid',
+            name: 'task',
+            component: IndividualTask,
+            props: true
+        },
+
     ]
 })
